@@ -140,7 +140,8 @@ curl -s -X POST localhost:8080/fingerprint \
 | 项 | 做法 |
 |---|---|
 | 构建 | 多阶段：`golang:1.23-alpine` 编译 → `scratch` 运行；`CGO_ENABLED=0`、`-trimpath`、`-s -w`、版本注入 |
-| 依赖缓存 | `go.mod/go.sum` 单独一层 + BuildKit cache mount |
+| 离线构建 | 依赖已 `vendor/` 提交，构建期不访问 module proxy；只拷贝构建所需目录以复用缓存 |
+| 依赖缓存 | `go.mod/go.sum/vendor` 单独一层 + BuildKit cache mount |
 | 运行身份 | `USER 65532:65532`，镜像内无 shell、无包管理器 |
 | 文件系统 | `read_only: true` + `/tmp` tmpfs |
 | 能力 | `cap_drop: ALL` + `no-new-privileges` |

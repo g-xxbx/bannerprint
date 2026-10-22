@@ -1,9 +1,8 @@
-# syntax=docker/dockerfile:1.7
-#
 # server 镜像：多阶段构建 + scratch 运行期
-#   - 构建阶段安装依赖并静态编译（CGO_ENABLED=0）
-#   - 运行阶段只保留二进制，默认非 root（65532），无 shell、无包管理器
-#   - 版本号通过 build-arg 注入，镜像可复现
+#   - 构建阶段使用 vendor/ 目录，完全离线编译（不依赖 registry / module proxy）
+#   - 静态编译（CGO_ENABLED=0），运行期只保留二进制
+#   - 默认非 root（65532），无 shell、无包管理器
+#   - 版本号通过 build-arg 注入，构建可复现
 
 ARG GO_VERSION=1.23
 
@@ -11,23 +10,23 @@ FROM golang:${GO_VERSION}-alpine AS build
 WORKDIR /src
 
 ENV CGO_ENABLED=0 \
-    GOTOOLCHAIN=local
+    GOTOOLCHAIN=local \
+    GOFLAGS=-mod=vendor
 
-# 依赖层单独缓存：只要 go.mod/go.sum 不变，后续改代码不会重新下载依赖。
+# 只拷贝构建真正需要的目录：改 README/数据不会击穿缓存。
 COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
-
-COPY . .
+COPY vendor ./vendor
+COPY cmd ./cmd
+COPY internal ./internal
+COPY rules ./rules
 
 ARG VERSION=dev
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
+RUN --mount=type=cache,target=/root/.cache/go-build \
     go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/server ./cmd/server
 
 FROM scratch
 COPY --from=build /out/server /app/server
 
-# 非 root、无 shell、只读根文件系统由 compose 进一步收紧。
 USER 65532:65532
 EXPOSE 8080
 
