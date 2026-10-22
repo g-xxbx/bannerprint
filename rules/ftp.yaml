@@ -31,6 +31,32 @@ rules:
     match: '(?i)^220[ -].*pure-ftpd'
     confidence: 0.7
 
+  - id: ftp.filezilla
+    protocol: FTP
+    product: FileZilla
+    priority: 300
+    kind: text
+    match: '(?i)^220[ -].*filezilla'
+    version: '(?i)FileZilla Server ([0-9][0-9.]*)'
+
+  - id: ftp.servu
+    protocol: FTP
+    product: Serv-U
+    priority: 300
+    kind: text
+    match: '(?i)^220[ -].*serv-u'
+    version: '(?i)Serv-U ([0-9][0-9.]*)'
+
+  - id: ftp.microsoft
+    protocol: FTP
+    product: Microsoft FTP Service
+    priority: 300
+    kind: text
+    match: '(?i)^220[ -].*microsoft ftp'
+    os_hint:
+      - match: '(?i)microsoft ftp'
+        value: Windows
+
   - id: ftp.generic
     protocol: FTP
     priority: 90

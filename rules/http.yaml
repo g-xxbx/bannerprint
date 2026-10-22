@@ -48,6 +48,56 @@ rules:
     match: '(?i)(?m)^server:[ \t]*microsoft-iis(?:/|[\s;]|$)'
     version: '(?i)Microsoft-IIS/([0-9][0-9.]*)'
 
+  - id: http.caddy
+    protocol: HTTP
+    product: Caddy
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*caddy(?:/|[\s;]|$)'
+    version: '(?i)Caddy/([0-9][0-9.]*)'
+
+  - id: http.openresty
+    protocol: HTTP
+    product: openresty
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*openresty(?:/|[\s;]|$)'
+    version: '(?i)openresty/([0-9][0-9.]*)'
+
+  - id: http.lighttpd
+    protocol: HTTP
+    product: lighttpd
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*lighttpd(?:/|[\s;]|$)'
+    version: '(?i)lighttpd/([0-9][0-9.]*)'
+
+  - id: http.tomcat
+    protocol: HTTP
+    product: Tomcat
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*(apache-coyote|apache tomcat)(?:/|[\s;]|$)'
+    version: '(?i)(?:Apache-Coyote|Apache Tomcat)/([0-9][0-9.]*)'
+
+  # Elasticsearch 通过 HTTP JSON 暴露版本，无 Server 头。
+  - id: http.elasticsearch
+    protocol: HTTP
+    product: Elasticsearch
+    priority: 310
+    kind: text
+    match: '(?i)"tagline"\s*:\s*"You Know, for Search"'
+    version: '(?i)"number"\s*:\s*"([0-9]+\.[0-9]+\.[0-9]+)"'
+
+  # Docker Engine API：任何响应都带 Api-Version 头。
+  - id: http.docker
+    protocol: HTTP
+    product: Docker
+    priority: 310
+    kind: text
+    match: '(?im)^api-version:\s*[0-9]'
+    version: '(?im)^api-version:\s*([0-9]+\.[0-9]+)'
+
   # 只认出协议。
   - id: http.generic
     protocol: HTTP

@@ -1,0 +1,77 @@
+version: 1
+
+# 邮件与缓存类服务：均为纯文本应答，按欢迎语识别。
+# 注意：SMTP 与 FTP 都用 220 开头，因此 SMTP 规则优先级高于 ftp.generic。
+rules:
+  - id: smtp.postfix
+    protocol: SMTP
+    product: Postfix
+    priority: 350
+    kind: text
+    match: '(?i)^220[ -].*esmtp.*\bpostfix\b'
+    os_hint:
+      - match: '(?i)\bubuntu\b'
+        value: Ubuntu
+      - match: '(?i)\bdebian\b'
+        value: Debian
+
+  - id: smtp.exim
+    protocol: SMTP
+    product: Exim
+    priority: 350
+    kind: text
+    match: '(?i)^220[ -].*esmtp.*\bexim\b'
+
+  - id: smtp.sendmail
+    protocol: SMTP
+    product: Sendmail
+    priority: 350
+    kind: text
+    match: '(?i)^220[ -].*\bsendmail\b'
+
+  - id: smtp.generic
+    protocol: SMTP
+    priority: 150
+    kind: text
+    match: '(?i)^220[ -].*\b(esmtp|smtp)\b'
+
+  - id: pop3.dovecot
+    protocol: POP3
+    product: Dovecot
+    priority: 320
+    kind: text
+    match: '(?i)^\+OK.*\bdovecot\b'
+
+  - id: pop3.courier
+    protocol: POP3
+    product: Courier
+    priority: 320
+    kind: text
+    match: '(?i)^\+OK.*\bcourier\b'
+
+  - id: pop3.generic
+    protocol: POP3
+    priority: 200
+    kind: text
+    match: '(?i)^\+OK.*(pop3|ready)'
+
+  - id: imap.dovecot
+    protocol: IMAP
+    product: Dovecot
+    priority: 320
+    kind: text
+    match: '(?i)^\* OK.*\bdovecot\b'
+
+  - id: imap.generic
+    protocol: IMAP
+    priority: 200
+    kind: text
+    match: '(?i)^\* OK.*(imap|ready)'
+
+  - id: memcached.version
+    protocol: Memcached
+    product: Memcached
+    priority: 300
+    kind: text
+    match: '(?i)^VERSION\s+[0-9]'
+    version: '(?i)^VERSION\s+([0-9][0-9.]*)'

@@ -163,8 +163,9 @@ curl -s -X POST localhost:8080/fingerprint \
 |---|---|
 | 工程骨架、契约、引擎、输入解析、HTTP 层、client、镜像、compose | 已完成并容器实测 |
 | SSH / HTTP(nginx·Apache·Jetty·IIS) / MySQL(MariaDB) / Redis / FTP / TLS 规则 | 已完成 |
+| 扩展规则：SMTP / POP3 / IMAP / Memcached / Caddy / openresty / Tomcat / FileZilla 等 | 已完成 |
 | 20 条自测数据表驱动测试 + 边界与 handler 测试 | 已完成（`go test ./...` 全绿） |
-| 扩展规则（SMTP、PostgreSQL、MongoDB 等） | 待补（P1，仅需加 YAML） |
+| 剩余协议（PostgreSQL、MongoDB、SMB 等） | 待补（P1，仅需加 YAML） |
 | CI、`/metrics`、多架构镜像 | 待补（P1） |
 
 ```bash

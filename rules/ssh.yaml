@@ -19,6 +19,33 @@ rules:
       - match: '(?i)\bFreeBSD\b'
         value: FreeBSD
 
+  - id: ssh.openssh-windows
+    protocol: SSH
+    product: OpenSSH
+    priority: 220
+    kind: text
+    match: '(?i)SSH-[0-9]\.[0-9]+-OpenSSH_for_Windows'
+    version: '(?i)OpenSSH_for_Windows_([0-9][0-9.]*)'
+    os_hint:
+      - match: '(?i)OpenSSH_for_Windows'
+        value: Windows
+
+  - id: ssh.dropbear
+    protocol: SSH
+    product: Dropbear
+    priority: 210
+    kind: text
+    match: '(?i)SSH-[0-9]\.[0-9]+-dropbear'
+    version: '(?i)dropbear_([0-9][0-9.]*)'
+
+  - id: ssh.libssh
+    protocol: SSH
+    product: libssh
+    priority: 210
+    kind: text
+    match: '(?i)SSH-[0-9]\.[0-9]+-libssh'
+    version: '(?i)libssh[_-]([0-9][0-9.]*)'
+
   # 只认出协议，产品未知。
   - id: ssh.generic
     protocol: SSH
