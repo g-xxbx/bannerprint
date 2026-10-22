@@ -1,6 +1,7 @@
 package fingerprint
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"sort"
@@ -132,12 +133,21 @@ func (e *Engine) Fingerprint(in Input) (res Result) {
 	}()
 
 	raw := []byte(in.Banner)
+	// 文本协议常因抓包/协商残留前置的 CRLF、空白或 NUL；匹配前统一裁掉。
+	// 二进制规则（MySQL/TLS/RESP）保持原始字节，避免破坏长度前缀。
+	text := bytes.TrimLeft(raw, " \t\r\n\v\f\x00")
+
 	for i := range e.rules {
 		r := &e.rules[i]
-		if !r.matchRE.Match(raw) {
+
+		subject := raw
+		if r.Kind != "binary" {
+			subject = text
+		}
+		if !r.matchRE.Match(subject) {
 			continue
 		}
-		return r.apply(in, raw)
+		return r.apply(in, subject)
 	}
 	return Unknown(in)
 }

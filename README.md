@@ -167,6 +167,7 @@ curl -s -X POST localhost:8080/fingerprint \
 | SSH / HTTP(nginx·Apache·Jetty·IIS) / MySQL(MariaDB) / Redis / FTP / TLS 规则 | 已完成 |
 | 扩展规则：SMTP / POP3 / IMAP / Memcached / Caddy / openresty / Tomcat / FileZilla 等 | 已完成 |
 | 20 条自测数据表驱动测试 + 边界与 handler 测试 | 已完成（`go test ./...` 全绿） |
+| 泛化语料 63 条 + 蜕变测试 + 随机鲁棒测试 | 已完成 |
 | 剩余协议（PostgreSQL、MongoDB、SMB 等） | 待补（P1，仅需加 YAML） |
 | CI、`/metrics`、多架构镜像 | 待补（P1） |
 
@@ -175,3 +176,27 @@ go test ./...        # 单元测试
 go run ./cmd/server  # 本地起服务
 go run ./cmd/client -file data/sample.json -server http://localhost:8080
 ```
+
+## 10. 测试策略（防止「面向答案编程」）
+
+识别类项目最容易犯的错是：只让示例数据通过。这里用五层测试互相制衡：
+
+| 层次 | 位置 | 作用 |
+|---|---|---|
+| 黄金样本 | `engine_test.go` | 20 条自测数据，锁定与示例一致的输出口径 |
+| 泛化语料 | `generalization_test.go` | 63 条真实 banner 变体，与示例**零重合**，含 6 条必须为 `unknown` 的负例 |
+| 蜕变不变性 | `robustness_test.go` | 大小写、前后空白、CRLF→LF、内容重复，不应改变结论 |
+| 随机鲁棒 | `robustness_test.go` | 2000 条随机字节：不 panic、协议非空、置信度落在 [0,1] |
+| 解析/接口 | `ingest`、`httpapi` | 数组/包装/单对象/BOM/`\xNN`/宽松 port、health/400/405/413 |
+
+泛化语料在开发中实际找出了 5 类真实缺口并已修复：
+
+1. `Server: Jetty(9.4.43.v20210629)` 括号写法；
+2. `220 Serv-U FTP Server v15.1` 的 `v` 前缀；
+3. Exim 版本号未提取；
+4. Redis RESP 分帧（`$4\r\nPONG`）与 `-DENIED`；
+5. banner 前置 CRLF/空白导致 `^220`、`^+OK` 等锚定规则失效。
+
+**已知盲区**：语料仍由人工编写，无法覆盖真实扫描器的全部畸形输入；
+未覆盖的协议一律降级为 `unknown`，这是设计选择而非缺陷。
+

@@ -36,8 +36,9 @@ rules:
     product: Jetty
     priority: 300
     kind: text
-    match: '(?i)(?m)^server:[ \t]*jetty(?:/|[\s;]|$)'
-    version: '(?i)Jetty/([0-9][0-9.]*)'
+    # Jetty 有两种写法：Jetty/9.4.51 与 Jetty(9.4.43.v20210629)
+    match: '(?i)(?m)^server:[ \t]*jetty(?:/|\(|[\s;]|$)'
+    version: '(?i)Jetty[/\(]([0-9]+(?:\.[0-9]+)+)'
     confidence: 0.85
 
   - id: http.iis

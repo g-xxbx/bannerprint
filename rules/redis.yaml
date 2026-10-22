@@ -7,5 +7,14 @@ rules:
     product: Redis
     priority: 250
     kind: text
-    match: '(?i)^[ \t]*(\+PONG|-(ERR|NOAUTH|WRONGTYPE|NOPERM|LOADING))'
+    match: '(?i)^[ \t]*(\+PONG|-(ERR|NOAUTH|WRONGTYPE|NOPERM|LOADING|DENIED))'
     confidence: 0.7
+
+  # RESP 分帧（$4 / *1）本身也足以判定 Redis，但证据弱于内联错误，置信度更低。
+  - id: redis.resp
+    protocol: Redis
+    product: Redis
+    priority: 240
+    kind: binary
+    match: '^[$*][0-9-]'
+    confidence: 0.6
