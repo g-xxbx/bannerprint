@@ -1,0 +1,11 @@
+version: 1
+
+# TLS：握手记录头。0x16 = Handshake，0x03 0x0x = TLS 版本。
+# 这里只做“传输层协议”判定，产品/版本留空（自测第 16 条）。
+rules:
+  - id: tls.handshake
+    protocol: TLS
+    priority: 500
+    kind: binary
+    match: '(?s)^\x16\x03[\x00-\x04]'
+    confidence: 0.6

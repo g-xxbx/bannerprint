@@ -161,8 +161,14 @@ curl -s -X POST localhost:8080/fingerprint \
 
 | 能力 | 状态 |
 |---|---|
-| 工程骨架、契约、引擎、输入解析、HTTP 层、client、镜像、compose | 已完成 |
-| SSH / HTTP(nginx·Apache·Jetty·IIS) / MySQL / Redis / FTP 规则 | 已有初版，待校准 |
-| 20 条自测数据的表驱动测试 | 待补 |
-| README 校准、置信度对齐、边界用例 | 待补 |
-| 扩展规则（TLS、SMTP 等） | 待补（P1） |
+| 工程骨架、契约、引擎、输入解析、HTTP 层、client、镜像、compose | 已完成并容器实测 |
+| SSH / HTTP(nginx·Apache·Jetty·IIS) / MySQL(MariaDB) / Redis / FTP / TLS 规则 | 已完成 |
+| 20 条自测数据表驱动测试 + 边界与 handler 测试 | 已完成（`go test ./...` 全绿） |
+| 扩展规则（SMTP、PostgreSQL、MongoDB 等） | 待补（P1，仅需加 YAML） |
+| CI、`/metrics`、多架构镜像 | 待补（P1） |
+
+```bash
+go test ./...        # 单元测试
+go run ./cmd/server  # 本地起服务
+go run ./cmd/client -file data/sample.json -server http://localhost:8080
+```

@@ -4,6 +4,15 @@ version: 1
 #   [0:3] payload length (LE) | [3] sequence id | [4] protocol version (0x0A) | version string
 # 规则直接在原始字节上匹配，因此无需协议专属代码。
 rules:
+  # MariaDB 的握手版本形如 5.5.5-10.3.34-MariaDB-0ubuntu0.20.04.1，需要先于 MySQL 匹配。
+  - id: mysql.mariadb
+    protocol: MySQL
+    product: MariaDB
+    priority: 420
+    kind: binary
+    match: '(?s)^[\x00-\xff]{4}\x0a[\x20-\x7e]*-MariaDB'
+    version: '(?s)^[\x00-\xff]{4}\x0a(?:5\.5\.5-)?([0-9]+\.[0-9]+\.[0-9]+)'
+
   - id: mysql.handshake
     protocol: MySQL
     product: MySQL
