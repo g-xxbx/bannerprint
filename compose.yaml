@@ -1,0 +1,83 @@
+name: bannerprint
+
+# 两个服务共享同一套运行期加固基线。
+x-hardening: &hardening
+  read_only: true
+  init: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:size=16m,mode=1777
+  restart: unless-stopped
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server
+      args:
+        VERSION: "0.1.0"
+    image: bannerprint-server:0.1.0
+    <<: *hardening
+
+    environment:
+      FP_ADDR: ":8080"
+      FP_LOG_LEVEL: "info"
+      # 规则以只读卷挂载，改规则无需重建镜像；目录为空/缺失时回退到内置规则。
+      FP_RULES_DIR: "/etc/bannerprint/rules"
+
+    volumes:
+      - ./rules:/etc/bannerprint/rules:ro
+
+    # 只有 server 对外暴露；client 只能通过服务名访问。
+    ports:
+      - "${FP_PORT:-8080}:8080"
+
+    healthcheck:
+      # scratch 镜像没有 shell/curl，用二进制自带的 healthcheck 子命令。
+      test: ["CMD", "/app/server", "healthcheck", "-url", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 3s
+
+    pids_limit: 100
+    mem_limit: 128m
+    cpus: 1.0
+
+    networks:
+      - fingerprint
+
+  client:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+      args:
+        VERSION: "0.1.0"
+    image: bannerprint-client:0.1.0
+    <<: *hardening
+    restart: "no"
+
+    depends_on:
+      server:
+        condition: service_healthy
+
+    environment:
+      # 容器间访问只走服务名，不依赖宿主机端口或 IP。
+      FP_SERVER_URL: "http://server:8080"
+
+    command: ["-file", "/data/sample.json"]
+    volumes:
+      - ./data:/data:ro
+
+    pids_limit: 50
+    mem_limit: 64m
+
+    networks:
+      - fingerprint
+
+networks:
+  fingerprint:
+    driver: bridge

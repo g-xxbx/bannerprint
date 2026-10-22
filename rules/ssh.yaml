@@ -1,0 +1,27 @@
+version: 1
+
+# SSH：产品级规则（OpenSSH）。优先级高于 ssh.generic。
+rules:
+  - id: ssh.openssh
+    protocol: SSH
+    product: OpenSSH
+    priority: 200
+    kind: text
+    match: '(?i)SSH-[0-9]\.[0-9]+-OpenSSH[_-]'
+    version: '(?i)OpenSSH[_-]([0-9][0-9A-Za-z._-]*)'
+    os_hint:
+      - match: '(?i)\bubuntu\b'
+        value: Ubuntu
+      - match: '(?i)\bdebian\b'
+        value: Debian
+      - match: '(?i)\bwindows\b'
+        value: Windows
+      - match: '(?i)\bFreeBSD\b'
+        value: FreeBSD
+
+  # 只认出协议，产品未知。
+  - id: ssh.generic
+    protocol: SSH
+    priority: 100
+    kind: text
+    match: '(?i)^[ \t]*SSH-[0-9]\.[0-9]+-'

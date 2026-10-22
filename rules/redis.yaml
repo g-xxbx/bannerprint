@@ -1,0 +1,11 @@
+version: 1
+
+# Redis：服务端内联应答。版本通常不出现在 banner 中，故只给产品级置信度。
+rules:
+  - id: redis.inline
+    protocol: Redis
+    product: Redis
+    priority: 250
+    kind: text
+    match: '(?i)^[ \t]*(\+PONG|-(ERR|NOAUTH|WRONGTYPE|NOPERM|LOADING))'
+    confidence: 0.7

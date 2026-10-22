@@ -1,0 +1,56 @@
+version: 1
+
+# HTTP：按 Server 头识别产品。443/8443 同样输出 HTTP（端口不作为判定依据）。
+rules:
+  - id: http.nginx
+    protocol: HTTP
+    product: nginx
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*nginx(?:/|[\s;]|$)'
+    version: '(?i)nginx/([0-9][0-9.]*)'
+    os_hint:
+      - match: '(?i)\(ubuntu\)|\bubuntu\b'
+        value: Ubuntu
+      - match: '(?i)\(debian\)|\bdebian\b'
+        value: Debian
+
+  - id: http.apache
+    protocol: HTTP
+    product: Apache
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*apache(?:/|[\s;]|$)'
+    version: '(?i)Apache/([0-9][0-9.]*)'
+    os_hint:
+      - match: '(?i)\(ubuntu\)|\bubuntu\b'
+        value: Ubuntu
+      - match: '(?i)\(debian\)|\bdebian\b'
+        value: Debian
+      - match: '(?i)\(centos\)|\bcentos\b'
+        value: CentOS
+
+  # Jetty 的 Server 头可被轻易覆盖，置信度低于 nginx/Apache。
+  - id: http.jetty
+    protocol: HTTP
+    product: Jetty
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*jetty(?:/|[\s;]|$)'
+    version: '(?i)Jetty/([0-9][0-9.]*)'
+    confidence: 0.85
+
+  - id: http.iis
+    protocol: HTTP
+    product: Microsoft-IIS
+    priority: 300
+    kind: text
+    match: '(?i)(?m)^server:[ \t]*microsoft-iis(?:/|[\s;]|$)'
+    version: '(?i)Microsoft-IIS/([0-9][0-9.]*)'
+
+  # 只认出协议。
+  - id: http.generic
+    protocol: HTTP
+    priority: 120
+    kind: text
+    match: '(?i)^[ \t]*HTTP/[0-9]\.[0-9]'

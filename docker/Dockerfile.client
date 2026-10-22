@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1.7
+#
+# client 镜像：与 server 同样的多阶段 + scratch 策略。
+# 只读挂载输入文件，运行结束后立即退出（一次性任务）。
+
+ARG GO_VERSION=1.23
+
+FROM golang:${GO_VERSION}-alpine AS build
+WORKDIR /src
+
+ENV CGO_ENABLED=0 \
+    GOTOOLCHAIN=local
+
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+
+COPY . .
+
+ARG VERSION=dev
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/client ./cmd/client
+
+FROM scratch
+COPY --from=build /out/client /app/client
+
+USER 65532:65532
+
+ENTRYPOINT ["/app/client"]

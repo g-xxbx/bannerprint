@@ -1,0 +1,38 @@
+version: 1
+
+# FTP：220 欢迎语。产品与版本均从同一行提取。
+rules:
+  - id: ftp.proftpd
+    protocol: FTP
+    product: ProFTPD
+    priority: 300
+    kind: text
+    match: '(?i)^220[ -].*proftpd'
+    version: '(?i)ProFTPD[ /]([0-9][0-9.]*)'
+    os_hint:
+      - match: '(?i)\bubuntu\b'
+        value: Ubuntu
+      - match: '(?i)\bdebian\b'
+        value: Debian
+
+  - id: ftp.vsftpd
+    protocol: FTP
+    product: vsFTPd
+    priority: 300
+    kind: text
+    match: '(?i)^220[ -].*vsftpd'
+    version: '(?i)vsFTPd ([0-9][0-9.]*)'
+
+  - id: ftp.pureftpd
+    protocol: FTP
+    product: Pure-FTPd
+    priority: 300
+    kind: text
+    match: '(?i)^220[ -].*pure-ftpd'
+    confidence: 0.7
+
+  - id: ftp.generic
+    protocol: FTP
+    priority: 90
+    kind: text
+    match: '(?i)^220[ -]'

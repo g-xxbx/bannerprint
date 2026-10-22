@@ -1,0 +1,8 @@
+bin/
+dist/
+*.exe
+*.log
+.env
+tmp/
+.idea/
+.vscode/
