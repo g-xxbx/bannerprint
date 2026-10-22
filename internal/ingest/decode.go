@@ -18,6 +18,9 @@ import (
 // 匹配非标准 \xNN 转义（JSON 只认 \uNNNN）。
 var xEscape = regexp.MustCompile(`\\x([0-9a-fA-F]{2})`)
 
+// UTF-8 BOM：Windows 工具导出的文件常带，JSON 解析器不接受。
+var utf8BOM = []byte{0xEF, 0xBB, 0xBF}
+
 // envelope 兼容“裸数组”之外的常见包装格式。
 type envelope struct {
 	Items []fingerprint.Input `json:"items"`
@@ -34,6 +37,7 @@ func Batch(r io.Reader) ([]fingerprint.Input, error) {
 	if err != nil {
 		return nil, err
 	}
+	data = bytes.TrimPrefix(data, utf8BOM)
 
 	items, err := strict(data)
 	if err == nil {

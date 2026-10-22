@@ -57,6 +57,17 @@ func TestBatchEmptyArray(t *testing.T) {
 	}
 }
 
+func TestBatchStripsBOM(t *testing.T) {
+	body := "\xef\xbb\xbf" + `[{"ip":"1.2.3.4","port":22,"banner":"SSH-2.0-x"}]`
+	items, err := Batch(strings.NewReader(body))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(items) != 1 || items[0].IP != "1.2.3.4" {
+		t.Fatalf("unexpected items: %+v", items)
+	}
+}
+
 func TestBatchRejectsInvalid(t *testing.T) {
 	for _, body := range []string{``, `not json`, `{"ip":`, `[{"port":"22"}]`} {
 		if _, err := Batch(strings.NewReader(body)); err == nil {
