@@ -88,7 +88,9 @@ curl -s -X POST localhost:8080/fingerprint \
 
 - 未知项：`protocol:"unknown"`，其余字段为空字符串，`confidence` 为 `0.1`。
 - 单条解析/匹配异常被隔离，不影响整批，服务不崩溃。
-- 上限：body 8 MiB、单批 10000 条，超限返回 `413`。
+- 输入宽容：`port` 支持数字/字符串/浮点，`banner` 允许缺失或 `null`，
+  `\xNN` 非标准转义与 UTF-8 BOM 会被自动修复，单个对象也会被当作单条批次。
+- 上限：body 64 MiB、单批 200000 条，超限返回 `413`。
 - 非法请求体返回 `400`，响应体为 `{"error":..., "detail":...}`。
 
 ### `GET /health`

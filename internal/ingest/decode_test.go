@@ -57,6 +57,27 @@ func TestBatchEmptyArray(t *testing.T) {
 	}
 }
 
+// 真实数据里 port 可能是字符串或浮点，不能让整批失败。
+func TestBatchLenientPort(t *testing.T) {
+	items, err := Batch(strings.NewReader(`[{"ip":"a","port":"22","banner":"x"},{"ip":"b","port":2222.0,"banner":"y"},{"ip":"c","banner":"z"}]`))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(items) != 3 || items[0].Port != 22 || items[1].Port != 2222 || items[2].Port != 0 {
+		t.Fatalf("unexpected ports: %+v", items)
+	}
+}
+
+func TestBatchSingleObject(t *testing.T) {
+	items, err := Batch(strings.NewReader(`{"ip":"a","port":22,"banner":"SSH-2.0-x"}`))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(items) != 1 || items[0].IP != "a" {
+		t.Fatalf("unexpected items: %+v", items)
+	}
+}
+
 func TestBatchStripsBOM(t *testing.T) {
 	body := "\xef\xbb\xbf" + `[{"ip":"1.2.3.4","port":22,"banner":"SSH-2.0-x"}]`
 	items, err := Batch(strings.NewReader(body))
@@ -69,7 +90,7 @@ func TestBatchStripsBOM(t *testing.T) {
 }
 
 func TestBatchRejectsInvalid(t *testing.T) {
-	for _, body := range []string{``, `not json`, `{"ip":`, `[{"port":"22"}]`} {
+	for _, body := range []string{``, `not json`, `{"ip":`, `[[1,2]]`} {
 		if _, err := Batch(strings.NewReader(body)); err == nil {
 			t.Fatalf("%q should fail", body)
 		}

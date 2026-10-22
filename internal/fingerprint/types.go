@@ -5,6 +5,12 @@
 // 新增协议或产品不需要修改本包任何代码。
 package fingerprint
 
+import (
+	"encoding/json"
+	"strconv"
+	"strings"
+)
+
 // ProtocolUnknown 是所有规则都未命中时的协议取值（题目要求，不许报错）。
 const ProtocolUnknown = "unknown"
 
@@ -12,10 +18,69 @@ const ProtocolUnknown = "unknown"
 const ConfidenceUnknown = 0.1
 
 // Input 是一条扫描原始数据。
+//
+// 反序列化是宽松的：真实扫描器导出的 port 可能是数字（22）、字符串（"22"）
+// 甚至浮点（22.0），banner 可能缺失或为 null。这些都不应让整批数据失败。
 type Input struct {
 	IP     string `json:"ip"`
 	Port   int    `json:"port"`
 	Banner string `json:"banner"`
+}
+
+// UnmarshalJSON 对 port 做数字/字符串/浮点兼容，对 banner 做 null 兼容。
+func (in *Input) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		IP     json.RawMessage `json:"ip"`
+		Port   json.RawMessage `json:"port"`
+		Banner json.RawMessage `json:"banner"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	in.IP = coerceString(raw.IP)
+	in.Port = coercePort(raw.Port)
+	in.Banner = coerceString(raw.Banner)
+	return nil
+}
+
+func coerceString(raw json.RawMessage) string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return ""
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		return s
+	}
+	var n json.Number
+	if err := json.Unmarshal(raw, &n); err == nil {
+		return n.String()
+	}
+	return ""
+}
+
+func coercePort(raw json.RawMessage) int {
+	if len(raw) == 0 || string(raw) == "null" {
+		return 0
+	}
+
+	var port int
+	if err := json.Unmarshal(raw, &port); err == nil {
+		return port
+	}
+
+	var f float64
+	if err := json.Unmarshal(raw, &f); err == nil {
+		return int(f)
+	}
+
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		if v, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
+			return v
+		}
+	}
+	return 0
 }
 
 // Result 是识别结果，字段与题目示例严格一致。

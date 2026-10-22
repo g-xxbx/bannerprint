@@ -80,6 +80,12 @@ func strict(data []byte) ([]fingerprint.Input, error) {
 		}
 	}
 
+	// 兼容单个对象（非数组）：宽松一点比整批 400 更有价值。
+	var single fingerprint.Input
+	if err := json.Unmarshal(data, &single); err == nil && (single.IP != "" || single.Banner != "") {
+		return []fingerprint.Input{single}, nil
+	}
+
 	return nil, fmt.Errorf("invalid request body: %w", arrayErr)
 }
 

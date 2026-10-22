@@ -37,10 +37,10 @@ func New(opts Options) *Server {
 		opts.Logger = slog.Default()
 	}
 	if opts.MaxBody <= 0 {
-		opts.MaxBody = 8 << 20 // 8 MiB
+		opts.MaxBody = 64 << 20 // 64 MiB
 	}
 	if opts.MaxItems <= 0 {
-		opts.MaxItems = 10000
+		opts.MaxItems = 200000
 	}
 	if opts.Timeout <= 0 {
 		opts.Timeout = 10 * time.Second

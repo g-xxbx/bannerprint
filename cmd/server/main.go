@@ -59,7 +59,7 @@ func main() {
 
 	logger := newLogger()
 
-	engine, err := loadEngine(*rulesDir)
+	engine, err := loadEngine(*rulesDir, logger)
 	if err != nil {
 		logger.Error("load rules failed", "error", err)
 		os.Exit(1)
@@ -107,15 +107,22 @@ func main() {
 	}
 }
 
-// loadEngine 优先使用外部规则目录，否则使用 go:embed 的内置规则。
-func loadEngine(dir string) (*fingerprint.Engine, error) {
-	var fsys fs.FS = rules.FS
-	root := rules.Dir
+// loadEngine 优先使用外部规则目录，不可用时回退到 go:embed 的内置规则。
+// 回退而不是退出，是因为“配置目录缺失”不应该让整个服务不可用。
+func loadEngine(dir string, logger *slog.Logger) (*fingerprint.Engine, error) {
 	if dir != "" {
-		fsys = os.DirFS(dir)
-		root = "."
+		if engine, err := engineFrom(os.DirFS(dir), "."); err == nil {
+			logger.Info("using external rules", "dir", dir)
+			return engine, nil
+		} else {
+			logger.Warn("external rules unusable, falling back to embedded rules",
+				"dir", dir, "error", err)
+		}
 	}
+	return engineFrom(rules.FS, rules.Dir)
+}
 
+func engineFrom(fsys fs.FS, root string) (*fingerprint.Engine, error) {
 	loaded, err := fingerprint.LoadFS(fsys, root)
 	if err != nil {
 		return nil, err

@@ -28,6 +28,7 @@ func TestExtendedProtocols(t *testing.T) {
 		{"http/tomcat", "HTTP/1.1 200 OK\r\nServer: Apache-Coyote/1.1", expectation{"HTTP", "Tomcat", "1.1", "", 0.9}},
 		{"http/docker", "HTTP/1.1 200 OK\r\nApi-Version: 1.43", expectation{"HTTP", "Docker", "1.43", "", 0.9}},
 		{"http/elasticsearch", `{"name":"n1","cluster_name":"es","version":{"number":"8.11.1"},"tagline":"You Know, for Search"}`, expectation{"HTTP", "Elasticsearch", "8.11.1", "", 0.9}},
+		{"http/h2-preface", "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n", expectation{"HTTP", "", "", "", 0.7}},
 		{"ftp/filezilla", "220-FileZilla Server 1.7.3\r\n220 Please visit https://filezilla-project.org/", expectation{"FTP", "FileZilla", "1.7.3", "", 0.9}},
 	}
 

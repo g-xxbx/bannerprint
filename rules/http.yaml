@@ -98,6 +98,14 @@ rules:
     match: '(?im)^api-version:\s*[0-9]'
     version: '(?im)^api-version:\s*([0-9]+\.[0-9]+)'
 
+  # HTTP/2 连接前言（明文 h2c）。
+  - id: http.h2-preface
+    protocol: HTTP
+    priority: 300
+    kind: binary
+    match: '(?s)^PRI \* HTTP/2\.0'
+    confidence: 0.7
+
   # 只认出协议。
   - id: http.generic
     protocol: HTTP
